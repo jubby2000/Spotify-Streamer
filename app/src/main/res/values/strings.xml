@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Spotify Streamer</string>
+    <string name="action_settings">Settings</string>
+    <string name="edit_text_hint">enter an artist</string>
+    <string name="pref_search_key">search</string>
+    <string name="pref_search_label">Search</string>
+    <string name="pref_search_default">The Notorious BIG</string>
+    <string name="detail_activity">Top 10 Songs</string>
+</resources>
