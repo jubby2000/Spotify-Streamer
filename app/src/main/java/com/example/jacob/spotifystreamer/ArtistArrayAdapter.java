@@ -1,6 +1,6 @@
 package com.example.jacob.spotifystreamer;
 
-import android.app.Activity;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +15,8 @@ import java.util.List;
 /**
  * Created by jacob on 7/3/15.
  */
-public class ArtistArrayAdapter extends ArrayAdapter<ArtistView> {
+
+public class ArtistArrayAdapter extends ArrayAdapter<ListOfArtists> {
         private static final String LOG_TAG = ArtistArrayAdapter.class.getSimpleName();
 
         /**
@@ -26,7 +27,8 @@ public class ArtistArrayAdapter extends ArrayAdapter<ArtistView> {
          * @param context        The current context. Used to inflate the layout file.
          * @param artistViews A List of AndroidFlavor objects to display in a list
          */
-        public ArtistArrayAdapter(Activity context, List<ArtistView> artistViews) {
+
+        public ArtistArrayAdapter(Context context, List<ListOfArtists> artistViews) {
             // Here, we initialize the ArrayAdapter's internal storage for the context and the list.
             // the second argument is used when the ArrayAdapter is populating a single TextView.
             // Because this is a custom adapter for two TextViews and an ImageView, the adapter is not
@@ -46,7 +48,7 @@ public class ArtistArrayAdapter extends ArrayAdapter<ArtistView> {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             // Gets the AndroidFlavor object from the ArrayAdapter at the appropriate position
-            ArtistView artistViews = getItem(position);
+            ListOfArtists artistViews = getItem(position);
 
             // Adapters recycle views to AdapterViews.
             // If this is a new View object we're getting, then inflate the layout.
@@ -71,4 +73,3 @@ public class ArtistArrayAdapter extends ArrayAdapter<ArtistView> {
             return convertView;
         }
     }
-

@@ -33,7 +33,9 @@ public class ArtistFragment extends Fragment {
     private final String LOG_TAG = ArtistFragment.class.getSimpleName();
     private ArtistArrayAdapter mArtistAdapter;
 
-    ArtistView[] artistViews = new ArtistView[] {};
+    ListOfArtists[] artistViews = {};
+
+    //ArrayList<ListOfArtists> arrayList = new ArrayList();
 
     public ArtistFragment() {
     }
@@ -48,15 +50,13 @@ public class ArtistFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        mArtistAdapter = new ArtistArrayAdapter(this.getActivity(), Arrays.asList(artistViews));
-/*
-        mArtistAdapter = new ArrayAdapter<String>(
-                getActivity(),
-                R.layout.artist_list_item,
-                R.id.artist_name,
-                new ArrayList<String>());
-*/
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+        mArtistAdapter = new ArtistArrayAdapter(getActivity(), Arrays.asList(artistViews));
+
+        ListView listView = (ListView) rootView.findViewById(R.id.artist_list);
+        listView.setAdapter(mArtistAdapter);
+
         final EditText editText = (EditText) rootView.findViewById(R.id.artist_search);
 
         editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -70,14 +70,13 @@ public class ArtistFragment extends Fragment {
                     Toast.makeText(getActivity(), searchText, Toast.LENGTH_LONG).show();
 
                     artistTask.execute(searchText);
+                    Log.i(LOG_TAG, mArtistAdapter.toString());
                     return true;
                 }
                 return false;
             }
         });
 
-        ListView listView = (ListView) rootView.findViewById(R.id.artist_list);
-        listView.setAdapter(mArtistAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
@@ -112,13 +111,6 @@ public class ArtistFragment extends Fragment {
 
             ArtistsPager results = service.searchArtists(searchString);
             List<Artist> artists = results.artists.items;
-
-            for (int i = 0; i < artists.size(); i++) {
-                    String image = artists.get(i).images.get(1).url;
-                    Artist artist = artists.get(i);
-                    Log.i(LOG_TAG, i + " " + image + artist.name);
-            }
-
             return artists;
         }
 
@@ -126,19 +118,32 @@ public class ArtistFragment extends Fragment {
         protected void onPostExecute(List<Artist> artists) {
             super.onPostExecute(artists);
 
+            int rightSize = 0;
             Log.i("Artist", String.valueOf(artists.size()));
             if(artists.size() > 0) {
-                mArtistAdapter.clear();
+                //mArtistAdapter.clear();
                 for (int i = 0; i < artists.size(); i++) {
-                        Artist artist = artists.get(i);
-                        //mArtistAdapter.add(artist.name);
-                        new ArtistView(artist.images.get(1).url, artist.name);
-                        Log.i(LOG_TAG, i + " " + artist.name);
+                    if (!artists.get(i).images.isEmpty()) {
+                        for (int i1 = 0; i1 < artists.get(i).images.size(); i1++) {
+                            if (artists.get(i).images.get(i1).height < 200 &&
+                                    artists.get(i).images.get(i1).width < 200) {
+                                rightSize = i1 - 1;
+                            }
+                        }
 
+                        String image = artists
+                                .get(i)
+                                .images
+                                .get(rightSize)
+                                .url;
+                        Artist artist = artists.get(i);
+                        mArtistAdapter.add(new ListOfArtists(image, artist.name));
+
+                        Log.i(LOG_TAG, i + " " + image + " " + artist.name);
+                    }
                 }
                 mArtistAdapter.notifyDataSetChanged();
             }
-
         }
     }
 }
