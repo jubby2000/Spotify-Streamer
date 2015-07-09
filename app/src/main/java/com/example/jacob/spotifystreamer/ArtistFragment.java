@@ -16,6 +16,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,7 +36,9 @@ public class ArtistFragment extends Fragment {
 
     ListOfArtists[] artistViews = {};
 
-    //ArrayList<ListOfArtists> arrayList = new ArrayList();
+    ArrayList<String> artistList = new ArrayList<>();
+
+    ArrayList<String> imageList = new ArrayList<>();
 
     public ArtistFragment() {
     }
@@ -52,11 +55,6 @@ public class ArtistFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        mArtistAdapter = new ArtistArrayAdapter(getActivity(), Arrays.asList(artistViews));
-
-        ListView listView = (ListView) rootView.findViewById(R.id.artist_list);
-        listView.setAdapter(mArtistAdapter);
-
         final EditText editText = (EditText) rootView.findViewById(R.id.artist_search);
 
         editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -70,12 +68,17 @@ public class ArtistFragment extends Fragment {
                     Toast.makeText(getActivity(), searchText, Toast.LENGTH_LONG).show();
 
                     artistTask.execute(searchText);
-                    Log.i(LOG_TAG, mArtistAdapter.toString());
+                    Log.i(LOG_TAG, artistList.toString());
                     return true;
                 }
                 return false;
             }
         });
+
+        mArtistAdapter = new ArtistArrayAdapter(getActivity(), artistList, imageList, Arrays.asList(artistViews));
+
+        ListView listView = (ListView) rootView.findViewById(R.id.artist_list);
+        listView.setAdapter(mArtistAdapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -137,14 +140,22 @@ public class ArtistFragment extends Fragment {
                                 .get(rightSize)
                                 .url;
                         Artist artist = artists.get(i);
-                        mArtistAdapter.add(new ListOfArtists(image, artist.name));
+                        artistList.add(i, artist.name);
+                        imageList.add(i, image);
 
-                        Log.i(LOG_TAG, i + " " + image + " " + artist.name);
+                        //Log.i(LOG_TAG, i + " " + image + " " + artist.name);
+                    } else {
+                        Artist artist = artists.get(i);
+                        String image = "http://www.schofieldstone.com/img/pictemp.gif";
+                        artistList.add(i, artist.name);
+                        imageList.add(i, image);
                     }
+                    }
+
                 }
-                mArtistAdapter.notifyDataSetChanged();
+                //mArtistAdapter.notifyDataSetChanged();
             }
         }
     }
-}
+
 

@@ -1,6 +1,7 @@
 package com.example.jacob.spotifystreamer;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,7 +20,6 @@ import java.util.List;
 
 public class ArtistArrayAdapter extends ArrayAdapter<ListOfArtists> {
         private static final String LOG_TAG = ArtistArrayAdapter.class.getSimpleName();
-
         /**
          * This is our own custom constructor (it doesn't mirror a superclass constructor).
          * The context is used to inflate the layout file, and the List is the data we want
@@ -28,12 +29,16 @@ public class ArtistArrayAdapter extends ArrayAdapter<ListOfArtists> {
          * @param artistViews A List of AndroidFlavor objects to display in a list
          */
 
-        public ArtistArrayAdapter(Context context, List<ListOfArtists> artistViews) {
+        public ArtistArrayAdapter(Context context, ArrayList<String> artistList, ArrayList<String> imageList, List<ListOfArtists> artistViews) {
             // Here, we initialize the ArrayAdapter's internal storage for the context and the list.
             // the second argument is used when the ArrayAdapter is populating a single TextView.
             // Because this is a custom adapter for two TextViews and an ImageView, the adapter is not
             // going to use this second argument, so it can be any value. Here, we used 0.
             super(context, 0, artistViews);
+            for (int i = 0; i < artistList.size(); i++) {
+                artistViews.add(i, (new ListOfArtists(imageList.get(i), artistList.get(i))));
+            }
+
         }
 
         /**
