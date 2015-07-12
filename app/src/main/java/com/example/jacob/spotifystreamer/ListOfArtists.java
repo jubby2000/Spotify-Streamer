@@ -7,12 +7,16 @@ public class ListOfArtists {
     String artistName;
     //String albumName;
     //String songName;
-    String image; // drawable reference id
+    String artistId;
+    String artistImage;
+    String countryCode;
 
-    public ListOfArtists(String image, String aName)
+    public ListOfArtists(String aImage, String aName, String aId, String aCountry)
     {
-        this.image = image;
+        this.artistImage = aImage;
         this.artistName = aName;
+        this.artistId = aId;
+        this.countryCode = aCountry;
     }
 
 }
