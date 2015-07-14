@@ -16,7 +16,7 @@ import java.util.ArrayList;
  * Created by jacob on 7/3/15.
  */
 
-public class SongArrayAdapter extends ArrayAdapter<ListofTracks> {
+public class SongArrayAdapter extends ArrayAdapter<ListOfTracks> {
         private static final String LOG_TAG = SongArrayAdapter.class.getSimpleName();
         /**
          * This is our own custom constructor (it doesn't mirror a superclass constructor).
@@ -27,7 +27,7 @@ public class SongArrayAdapter extends ArrayAdapter<ListofTracks> {
          * @param trackViews A List of AndroidFlavor objects to display in a list
          */
 
-        public SongArrayAdapter(Context context, ArrayList<ListofTracks> trackViews) {
+        public SongArrayAdapter(Context context, ArrayList<ListOfTracks> trackViews) {
             // Here, we initialize the ArrayAdapter's internal storage for the context and the list.
             // the second argument is used when the ArrayAdapter is populating a single TextView.
             // Because this is a custom adapter for two TextViews and an ImageView, the adapter is not
@@ -54,7 +54,7 @@ public class SongArrayAdapter extends ArrayAdapter<ListofTracks> {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             // Gets the AndroidFlavor object from the ArrayAdapter at the appropriate position
-            ListofTracks trackViews = getItem(position);
+            ListOfTracks trackViews = getItem(position);
 
             // Adapters recycle views to AdapterViews.
             // If this is a new View object we're getting, then inflate the layout.
@@ -63,9 +63,6 @@ public class SongArrayAdapter extends ArrayAdapter<ListofTracks> {
             if (convertView == null) {
                 convertView = LayoutInflater.from(getContext()).inflate(R.layout.track_view_layout, parent, false);
             }
-
-            //ImageView iconView = (ImageView) convertView.findViewById(R.id.list_item_icon);
-            //iconView.setImageResource(androidFlavor.image);
 
             ImageView imageView = (ImageView) convertView.findViewById(R.id.album_image);
             Picasso.with(getContext())

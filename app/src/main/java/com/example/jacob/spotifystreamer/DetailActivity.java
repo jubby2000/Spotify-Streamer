@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
@@ -14,7 +13,6 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -28,7 +26,6 @@ import retrofit.http.QueryMap;
  * Created by jacob on 6/29/15.
  */
 public class DetailActivity extends ActionBarActivity {
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,40 +44,61 @@ public class DetailActivity extends ActionBarActivity {
         }
     }
 
+/*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
+*/
 
     public static class DetailFragment extends Fragment {
 
         public static final String LOG_TAG = DetailFragment.class.getSimpleName();
 
-        ListofTracks[] trackViews = {};
+        //ListOfTracks[] trackViews = {};
 
         private SongArrayAdapter mSongArrayAdapter;
+
+        private ArrayList<ListOfTracks> trackList;
 
         public DetailFragment() {
             setHasOptionsMenu(true);
         }
 
         @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+
+            if (savedInstanceState == null || !savedInstanceState.containsKey("tracks")) {
+                trackList = new ArrayList<ListOfTracks>();
+            } else {
+                trackList = savedInstanceState.getParcelableArrayList("tracks");
+            }
+
+        }
+
+        @Override
+        public void onSaveInstanceState(Bundle outState) {
+            if (trackList != null) {
+                outState.putParcelableArrayList("tracks", trackList);
+            }
+            super.onSaveInstanceState(outState);
+        }
+
+        @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
 
+
+
             View rootView = inflater.inflate(R.layout.track_list_layout, container, false);
 
-            mSongArrayAdapter = new SongArrayAdapter(getActivity(), new ArrayList<ListofTracks>());
+            mSongArrayAdapter = new SongArrayAdapter(getActivity(), trackList);//new ArrayList<ListOfTracks>());
 
             ListView listView = (ListView) rootView.findViewById(R.id.track_list);
             listView.setAdapter(mSongArrayAdapter);
-
-            //if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
-            //    mForecastStr = intent.getStringExtra(Intent.EXTRA_TEXT);
-            //    ((TextView) rootView.findViewById(R.id.album_and_song)).setText(mForecastStr);
-            //}
 
             Intent intent = getActivity().getIntent();
             //String artistName = intent.getStringExtra("artist");
@@ -89,27 +107,31 @@ public class DetailActivity extends ActionBarActivity {
 
             FetchTopSongsTask topSongsTask = new FetchTopSongsTask();
 
-            topSongsTask.execute(artistId);
+            if (savedInstanceState == null) {
+                topSongsTask.execute(artistId);
+            }
 
             return rootView;
         }
 
-        public List<Track> getArtistTopTrack(@Path("id") String artistId, @QueryMap Map<String, Object> options){
-            SpotifyApi api = new SpotifyApi();
-            SpotifyService spotify = api.getService();
 
-            Map<String, Object> map = new HashMap<>();
-            map.put("country", Locale.getDefault().getCountry());
-
-            Tracks results = spotify.getArtistTopTrack(artistId, map);
-            List<Track> topTracks = results.tracks;
-
-            return topTracks;
-        }
 
         public class FetchTopSongsTask extends AsyncTask<String, Void, List<Track>> {
 
             private final String LOG_TAG = FetchTopSongsTask.class.getSimpleName();
+
+            public List<Track> getArtistTopTrack(@Path("id") String artistId, @QueryMap Map<String, Object> options){
+                SpotifyApi api = new SpotifyApi();
+                SpotifyService spotify = api.getService();
+
+                Map<String, Object> map = new HashMap<>();
+                map.put("country", "US");
+
+                Tracks results = spotify.getArtistTopTrack(artistId, map);
+                List<Track> topTracks = results.tracks;
+
+                return topTracks;
+            }
 
             @Override
             protected List<Track> doInBackground(String... query) {
@@ -118,33 +140,20 @@ public class DetailActivity extends ActionBarActivity {
                     return null;
                 }
 
-                //Intent intent = getActivity().getIntent();
-                //String artistName = intent.getStringExtra("artist");
-                //String artistId = intent.getStringExtra("artistId");
-                //String country = intent.getStringExtra("country"); //Probably unnecessary
+                List<Track> tracks = getArtistTopTrack(query[0], null);
 
-                List<Track> topTracks = getArtistTopTrack(query[0], null);
-
-                /*
-                String searchString = query[0];
-
-                SpotifyApi api = new SpotifyApi();
-                SpotifyService service = api.getService();
-
-                ArtistsPager results = service.searchArtists(searchString);
-                List<Artist> artists = results.artists.items;
-                return artists;
-                */
-                return topTracks;
+                return tracks;
             }
 
             @Override
             protected void onPostExecute(List<Track> topTracks) {
                 super.onPostExecute(topTracks);
 
-                if (topTracks != null) {
+                if (topTracks == null) {
                     mSongArrayAdapter.clear();
                 }
+
+                ArrayList<ListOfTracks> trackStore = new ArrayList<ListOfTracks>();
 
                 int rightSize = 0;
                 if(topTracks.size() > 0) {
@@ -162,48 +171,21 @@ public class DetailActivity extends ActionBarActivity {
                             String trackName = topTracks.get(i).name;
                             String albumName = topTracks.get(i).album.name;
                             String previewUrl = topTracks.get(i).preview_url;
-                            mSongArrayAdapter.add(new ListofTracks(largeImage, image, trackName, albumName, previewUrl));
+                            trackStore.add(new ListOfTracks(largeImage, image, trackName, albumName, previewUrl));
+                            mSongArrayAdapter.add(new ListOfTracks(largeImage, image, trackName, albumName, previewUrl));
                         } else {
-                            String largeImage = "http://www.schofieldstone.com/img/pictemp.gif";
-                            String image = "http://www.schofieldstone.com/img/pictemp.gif";
+                            String largeImage = "http://lorempixel.com/640/640/cats/";
+                            String image = "http://lorempixel.com/200/200/cats/";
                             String trackName = topTracks.get(i).name;
                             String albumName = topTracks.get(i).album.name;
                             String previewUrl = topTracks.get(i).preview_url;
-                            mSongArrayAdapter.add(new ListofTracks(largeImage, image, trackName, albumName, previewUrl));
+                            trackStore.add(new ListOfTracks(largeImage, image, trackName, albumName, previewUrl));
+                            mSongArrayAdapter.add(new ListOfTracks(largeImage, image, trackName, albumName, previewUrl));
                         }
                     }
                 }
+                trackList = trackStore;
             }
         }
-
-        /*FOR SHARING
-        @Override
-        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-            // Inflate the menu; this adds items to the action bar if it is present.
-            inflater.inflate(R.menu.detailfragment, menu);
-
-            // Retrieve the share menu item
-            MenuItem menuItem = menu.findItem(R.id.action_share);
-
-            // Fetch and store ShareActionProvider
-            ShareActionProvider mShareActionProvider = (ShareActionProvider) MenuItemCompat
-                    .getActionProvider(menuItem);
-
-            if (mShareActionProvider != null) {
-                mShareActionProvider.setShareIntent(createShareForecastIntent());
-            } else {
-                Log.d(LOG_TAG, "Share action provider is null?");
-            }
-        }
-
-        private Intent createShareForecastIntent() {
-            // Create the share Intent
-            Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-            shareIntent.setType("text/plain");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, mForecastStr + FORECAST_SHARE_HASHTAG);
-            return shareIntent;
-        }
-        */
     }
 }

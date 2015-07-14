@@ -31,15 +31,33 @@ public class ArtistFragment extends Fragment {
     private final String LOG_TAG = ArtistFragment.class.getSimpleName();
     private ArtistArrayAdapter mArtistAdapter;
 
-    ListOfArtists[] artistViews = {};
-
-    public ArtistFragment() {
-    }
+    private ArrayList<ListOfArtists> artistList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+        if (savedInstanceState == null || !savedInstanceState.containsKey("artists")) {
+            artistList = new ArrayList<ListOfArtists>();
+        } else {
+            artistList = savedInstanceState.getParcelableArrayList("artists");
+        }
+
         setHasOptionsMenu(true);
+    }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (artistList != null) {
+            outState.putParcelableArrayList("artists", artistList);
+        }
+            super.onSaveInstanceState(outState);
+    }
+
+
+    public ArtistFragment() {
     }
 
     @Override
@@ -67,7 +85,7 @@ public class ArtistFragment extends Fragment {
             }
         });
 
-        mArtistAdapter = new ArtistArrayAdapter(getActivity(), new ArrayList<ListOfArtists>());
+        mArtistAdapter = new ArtistArrayAdapter(getActivity(), artistList);
 
         ListView listView = (ListView) rootView.findViewById(R.id.artist_list);
         listView.setAdapter(mArtistAdapter);
@@ -109,12 +127,21 @@ public class ArtistFragment extends Fragment {
 
             ArtistsPager results = service.searchArtists(searchString);
             List<Artist> artists = results.artists.items;
+
+            /*
+            for(Artist artist : artists) {
+                artistList.add(new ListOfArtists(artist.images.toString(), artist.name, artist.id, "US"));
+            }
+            */
+
             return artists;
         }
 
         @Override
         protected void onPostExecute(List<Artist> artists) {
             super.onPostExecute(artists);
+
+            ArrayList<ListOfArtists> artistStore = new ArrayList<ListOfArtists>();
 
             if (artists != null) {
                 mArtistAdapter.clear();
@@ -135,16 +162,19 @@ public class ArtistFragment extends Fragment {
                         Artist artist = artists.get(i);
                         String artistId = artists.get(i).id;
                         String country = "US";
+                        artistStore.add(new ListOfArtists(image, artist.name, artistId, country));
                         mArtistAdapter.add(new ListOfArtists(image, artist.name, artistId, country));
                     } else {
                         Artist artist = artists.get(i);
-                        String image = "http://www.schofieldstone.com/img/pictemp.gif";
+                        String image = "http://lorempixel.com/200/200/cats/";
                         String artistId = artists.get(i).id;
                         String country = "US";
+                        artistStore.add(new ListOfArtists(image, artist.name, artistId, country));
                         mArtistAdapter.add(new ListOfArtists(image, artist.name, artistId, country));
                     }
                     }
                 }
+            artistList = artistStore;
             }
         }
     }
