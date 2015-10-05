@@ -68,10 +68,16 @@ public class ArtistArrayAdapter extends ArrayAdapter<ListOfArtists> {
             //iconView.setImageResource(androidFlavor.image);
 
             ImageView imageView = (ImageView) convertView.findViewById(R.id.artist_image);
-            Picasso.with(getContext())
-                    .load(artistViews.artistImage)
-                    //.resize(200, 200)
-                    .into(imageView);
+            try {
+                Picasso.with(getContext())
+                        .load(artistViews.artistImage)
+                        .into(imageView);
+            } catch (IllegalArgumentException error) {
+                Picasso.with(getContext())
+                        .load("http://lorempixel.com/200/200/cats/")
+                        .into(imageView);
+            }
+
 
             TextView artistNameView = (TextView) convertView.findViewById(R.id.artist_name);
             artistNameView.setText(artistViews.artistName);

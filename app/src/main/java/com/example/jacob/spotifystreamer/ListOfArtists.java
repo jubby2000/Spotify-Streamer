@@ -13,13 +13,15 @@ public class ListOfArtists implements Parcelable{
     String artistId;
     String artistImage;
     String countryCode;
+    String artistImageLarge;
 
-    public ListOfArtists(String aImage, String aName, String aId, String aCountry)
+    public ListOfArtists(String aImage, String aName, String aId, String aCountry, String aImageLarge)
     {
         this.artistImage = aImage;
         this.artistName = aName;
         this.artistId = aId;
         this.countryCode = aCountry;
+        this.artistImageLarge = aImageLarge;
     }
 
     private ListOfArtists(Parcel in){

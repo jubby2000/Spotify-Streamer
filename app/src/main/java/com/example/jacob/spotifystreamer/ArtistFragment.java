@@ -1,14 +1,18 @@
 package com.example.jacob.spotifystreamer;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -21,12 +25,25 @@ import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
+import retrofit.RetrofitError;
 
 
 /**
  * A placeholder fragment containing a simple view.
  */
 public class ArtistFragment extends Fragment {
+
+    public interface OnPassBack {
+        public void onPassBack(String artistName, String artistId, String country, String artistImageLarge);
+    }
+
+    OnPassBack passBack;
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        passBack = (OnPassBack) activity;
+    }
 
     private final String LOG_TAG = ArtistFragment.class.getSimpleName();
     private ArtistArrayAdapter mArtistAdapter;
@@ -64,7 +81,7 @@ public class ArtistFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        final View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         final EditText editText = (EditText) rootView.findViewById(R.id.artist_search);
 
@@ -79,8 +96,14 @@ public class ArtistFragment extends Fragment {
 
                     artistTask.execute(searchText);
 
+                    InputMethodManager imm = (InputMethodManager) getActivity()
+                            .getSystemService(Context.INPUT_METHOD_SERVICE);
+
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
                     return true;
                 }
+
                 return false;
             }
         });
@@ -94,15 +117,22 @@ public class ArtistFragment extends Fragment {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int i, long l) {
+
                 String artist = mArtistAdapter.getItem(i).artistName;
                 String country = mArtistAdapter.getItem(i).countryCode;
                 String artistId = mArtistAdapter.getItem(i).artistId;
+                String artistImageLarge = mArtistAdapter.getItem(i).artistImageLarge;
 
-                Intent intent = new Intent(getActivity(), DetailActivity.class)
-                        .putExtra("artist", artist)
-                        .putExtra("artistId", artistId)
-                        .putExtra("country", country);
-                startActivity(intent);
+                if (!getResources().getBoolean(R.bool.large_layout)) {
+                    Intent intent = new Intent(getActivity(), DetailActivity.class)
+                            .putExtra("artist", artist)
+                            .putExtra("artistId", artistId)
+                            .putExtra("country", country)
+                            .putExtra("artistImageLarge", artistImageLarge);
+                    startActivity(intent);
+                } else {
+                    passBack.onPassBack(artist, artistId, country, artistImageLarge);
+                }
             }
         });
 
@@ -125,16 +155,23 @@ public class ArtistFragment extends Fragment {
             SpotifyApi api = new SpotifyApi();
             SpotifyService service = api.getService();
 
-            ArtistsPager results = service.searchArtists(searchString);
-            List<Artist> artists = results.artists.items;
-
-            /*
-            for(Artist artist : artists) {
-                artistList.add(new ListOfArtists(artist.images.toString(), artist.name, artist.id, "US"));
+            try {
+                ArtistsPager results = service.searchArtists(searchString);
+                List<Artist> artists = results.artists.items;
+                if (artists.size() == 0){
+                    Snackbar.make(getActivity().findViewById(R.id.artist_list),
+                            "I can't find any artists by that name.",
+                            Snackbar.LENGTH_LONG).show();
+                    return null;
+                }
+                return artists;
+            } catch(RetrofitError error){
+                //Picasso.with(getActivity()).load(null, null, R.drawable.music_256).into(R.id.track_list_layout);
+                Snackbar.make(getActivity().findViewById(R.id.artist_list),
+                        "YO DAWG YOU NEED INTERNET TO INTERNET.",
+                        Snackbar.LENGTH_LONG).show();
+                return null;
             }
-            */
-
-            return artists;
         }
 
         @Override
@@ -145,6 +182,8 @@ public class ArtistFragment extends Fragment {
 
             if (artists != null) {
                 mArtistAdapter.clear();
+            } else {
+                return;
             }
 
             int rightSize = 0;
@@ -162,18 +201,19 @@ public class ArtistFragment extends Fragment {
                         Artist artist = artists.get(i);
                         String artistId = artists.get(i).id;
                         String country = "US";
-                        artistStore.add(new ListOfArtists(image, artist.name, artistId, country));
-                        mArtistAdapter.add(new ListOfArtists(image, artist.name, artistId, country));
+                        String artistImageLarge = artists.get(i).images.get(0).url;
+                        artistStore.add(new ListOfArtists(image, artist.name, artistId, country, artistImageLarge));
+                        mArtistAdapter.add(new ListOfArtists(image, artist.name, artistId, country, artistImageLarge));
                     } else {
                         Artist artist = artists.get(i);
                         String image = "http://lorempixel.com/200/200/cats/";
                         String artistId = artists.get(i).id;
                         String country = "US";
-                        artistStore.add(new ListOfArtists(image, artist.name, artistId, country));
-                        mArtistAdapter.add(new ListOfArtists(image, artist.name, artistId, country));
-                    }
+                        artistStore.add(new ListOfArtists(image, artist.name, artistId, country, null));
+                        mArtistAdapter.add(new ListOfArtists(image, artist.name, artistId, country, null));
                     }
                 }
+            }
             artistList = artistStore;
             }
         }

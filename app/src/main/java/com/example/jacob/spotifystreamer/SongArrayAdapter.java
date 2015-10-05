@@ -65,10 +65,15 @@ public class SongArrayAdapter extends ArrayAdapter<ListOfTracks> {
             }
 
             ImageView imageView = (ImageView) convertView.findViewById(R.id.album_image);
-            Picasso.with(getContext())
-                    .load(trackViews.image)
-                    //.resize(200, 200)
-                    .into(imageView);
+            try {
+                Picasso.with(getContext())
+                        .load(trackViews.image)
+                        .into(imageView);
+            } catch (IllegalArgumentException error) {
+                Picasso.with(getContext())
+                        .load("http://lorempixel.com/200/200/cats/")
+                        .into(imageView);
+            }
 
             TextView trackTextView = (TextView) convertView.findViewById(R.id.song_name);
             trackTextView.setText(trackViews.trackName);

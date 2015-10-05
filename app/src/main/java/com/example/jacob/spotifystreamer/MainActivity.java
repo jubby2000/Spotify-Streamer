@@ -3,18 +3,36 @@ package com.example.jacob.spotifystreamer;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements ArtistFragment.OnPassBack{
 
     //private final String LOG_TAG = MainActivity.class.getSimpleName();
+
+    boolean mIsLargeLayout;
+    private static final String DETAILFRAGMENT_TAG = "DFTAG";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
+
+        if (mIsLargeLayout) {
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.top_tracks_container, new DetailActivity.DetailFragment(), DETAILFRAGMENT_TAG)
+                        .commit();
+            }
+        }
+
+//        ArtistFragment artistFragment =  ((ArtistFragment)getSupportFragmentManager()
+//                .findFragmentById(R.id.fragment_artists));
+//        forecastFragment.setUseTodayLayout(!mTwoPane);
     }
 
 
@@ -46,24 +64,42 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
 
     }
-/*
-    public void openPreferredLocationInMap() {
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String location = sharedPrefs.getString(getString(R.string.pref_location_key),
-                getString(R.string.pref_location_default));
 
-        Uri geoLocation = Uri.parse("geo:0,0?q=").buildUpon()
-                .appendQueryParameter("q", location)
-                .build();
+    @Override
+    public void onPassBack(String artistName, String artistId, String country, String artistImageLarge) {
+        Log.v("LOG", artistName + " " + artistId + " " + country + " " + artistImageLarge);
 
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(geoLocation);
+        if (mIsLargeLayout) {
+            Bundle args = new Bundle();
+            args.putString("artist", artistName);
+            args.putString("artistId", artistId);
+            args.putString("country", country);
+            args.putString("artistImageLarge", artistImageLarge);
 
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivity(intent);
+            DetailActivity.DetailFragment fragment = new DetailActivity.DetailFragment();
+            fragment.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.top_tracks_container, fragment, DETAILFRAGMENT_TAG)
+                    .commit();
         } else {
-            Log.d(LOG_TAG, "Couldn't call " + location + ", no receiving apps installed!");
+            Intent intent = new Intent(this, DetailActivity.class)
+                    .putExtra("artist", artistName)
+                    .putExtra("artistId", artistId)
+                    .putExtra("country", country)
+                    .putExtra("artistImageLarge", artistImageLarge);
+            startActivity(intent);
         }
-    }*/
+        }
+    }
 
-}
+//    @Override
+//    public void onItemSelected(String artistName, String artistId, String country, String artistImageLarge) {
+//        if (mIsLargeLayout) {
+//            // In two-pane mode, show the detail view in this activity by
+//            // adding or replacing the detail fragment using a
+//            // fragment transaction.
+
+//    }
+
+
